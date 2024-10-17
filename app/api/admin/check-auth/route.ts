@@ -1,13 +1,12 @@
-import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { NextResponse } from "next/server";
+import { checkAuth } from "@/app/utils/auth";
 
 export async function GET() {
-  const cookieStore = cookies()
-  const adminToken = cookieStore.get('admin_token')
+  const authResult = checkAuth();
 
-  if (adminToken) {
-    return NextResponse.json({ authenticated: true })
+  if (typeof authResult === "string") {
+    return NextResponse.json({ authenticated: true });
   } else {
-    return NextResponse.json({ authenticated: false }, { status: 401 })
+    return authResult;
   }
 }
