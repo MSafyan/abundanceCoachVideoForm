@@ -1,10 +1,12 @@
-var backendUrl = process.env.BACKEND_URL_DEV;
+const getBackendUrl = () => {
+  // This will be replaced at build time with the actual environment
+  if (process.env.NEXT_PUBLIC_APP_ENV === "production") {
+    return process.env.NEXT_PUBLIC_BACKEND_URL_PROD;
+  } else if (process.env.NEXT_PUBLIC_APP_ENV === "staging") {
+    return process.env.NEXT_PUBLIC_BACKEND_URL_STAGING;
+  } else {
+    return process.env.NEXT_PUBLIC_BACKEND_URL_DEV;
+  }
+};
 
-if (process.env.NODE_ENV === "production") {
-  backendUrl = process.env.BACKEND_URL_PROD;
-  // @ts-ignore
-} else if (process.env.NODE_ENV === "staging") {
-  backendUrl = process.env.BACKEND_URL_STAGING;
-}
-
-export { backendUrl };
+export const backendUrl = getBackendUrl();

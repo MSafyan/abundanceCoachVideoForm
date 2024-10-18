@@ -13,8 +13,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log(backendUrl);
-
     if (!backendResponse.ok) {
       const errorData = await backendResponse.json();
       throw new Error(errorData.message || "Failed to fetch video categories");
