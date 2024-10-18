@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-
+import { backendUrl } from "@/config";
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
@@ -16,17 +16,14 @@ export async function PATCH(
   }
 
   try {
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/videos/${params.id}/admin`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ isVerified }),
-      }
-    );
+    const response = await fetch(`${backendUrl}/videos/${params.id}/admin`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ isVerified }),
+    });
 
     const data = await response.json();
 

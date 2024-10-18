@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { backendUrl } from "@/config";
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.json();
 
-    const backendResponse = await fetch(
-      `${process.env.BACKEND_URL}/videoDetails`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      }
-    );
+    const backendResponse = await fetch(`${backendUrl}/videoDetails`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData),
+    });
 
     if (!backendResponse.ok) {
       const errorData = await backendResponse.json();

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAuth } from "@/app/utils/auth";
+import { backendUrl } from "@/config";
 
 export async function GET(request: NextRequest) {
   const authResult = checkAuth();
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
   const accessToken = authResult;
 
   try {
-    const response = await fetch(`${process.env.BACKEND_URL}/videos`, {
+    const response = await fetch(`${backendUrl}/videos`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",

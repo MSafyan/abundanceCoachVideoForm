@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-
+import { backendUrl } from "@/config";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
     const backendResponse = await fetch(
-      `${process.env.BACKEND_URL}/files/signed-url/public`,
+      `${backendUrl}/files/signed-url/public`,
       {
         method: "POST",
         headers: {

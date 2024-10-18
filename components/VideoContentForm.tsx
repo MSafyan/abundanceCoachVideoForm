@@ -34,6 +34,8 @@ import { toast } from "@/hooks/use-toast";
 import { TagInput } from "./ui/tag-input";
 import * as tus from "tus-js-client";
 import { Progress } from "@/components/ui/progress";
+import ReactConfetti from "react-confetti";
+import { X } from "lucide-react"; // For the close button
 
 // Add this constant at the top of your file, after the imports
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB in bytes
@@ -75,6 +77,44 @@ interface Category {
   category: string;
 }
 
+// Add this new component for the success modal
+const SuccessModal = ({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full relative">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+        >
+          <X size={24} />
+        </button>
+        <h2 className="text-2xl font-bold mb-4 text-green-600">Success!</h2>
+        <p className="text-lg mb-4">
+          Your video content application has been submitted successfully!
+        </p>
+        <p className="text-md mb-4">
+          You're one step closer to becoming one of our first facilitators.
+          We'll review your application and get back to you soon.
+        </p>
+        <button
+          onClick={onClose}
+          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export default function VideoContentForm() {
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [video, setVideo] = useState<File | null>(null);
@@ -87,6 +127,8 @@ export default function VideoContentForm() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [showAmtPointsRequired, setShowAmtPointsRequired] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -267,11 +309,9 @@ export default function VideoContentForm() {
       const result = await response.json();
 
       if (result.success) {
-        toast({
-          title: "Success",
-          description: "Video details submitted successfully",
-        });
-        // Optionally, reset the form or redirect the user
+        setShowSuccessModal(true);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000); // Stop confetti after 5 seconds
         form.reset();
       } else {
         throw new Error(result.message || "Submission failed");
@@ -364,33 +404,159 @@ export default function VideoContentForm() {
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto bg-white/90 backdrop-blur-sm shadow-lg">
-      <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold">
-          Video Content Application Form
-        </CardTitle>
-        <CardDescription>
-          Super Exciting News! Our Long Awaited Beta Feature Release Is Coming
-          Really Soon! Apply Below To Be One Of Our First Facilitators To Get
-          Eyeballs On Your Premium Video Content!
-        </CardDescription>
-        <p className="font-semibold mt-4">
-          The First 111 Successful Applications Will Get Access To FREE Premium
-          Features For Life!
-        </p>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <>
+      <Card className="w-full max-w-4xl mx-auto bg-white/90 backdrop-blur-sm shadow-lg">
+        <CardHeader className="text-center">
+          <CardTitle className="text-3xl font-bold">
+            Video Content Application Form
+          </CardTitle>
+          <CardDescription>
+            Super Exciting News! Our Long Awaited Beta Feature Release Is Coming
+            Really Soon! Apply Below To Be One Of Our First Facilitators To Get
+            Eyeballs On Your Premium Video Content!
+          </CardDescription>
+          <p className="font-semibold mt-4">
+            The First 111 Successful Applications Will Get Access To FREE
+            Premium Features For Life!
+          </p>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
-                name="firstName"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Name</FormLabel>
+                    <FormLabel>Registered Wesion Account Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="John" {...field} />
+                      <Input
+                        type="email"
+                        placeholder="john.doe@example.com"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="categoryIds"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {categories.map((category) => (
+                            <SelectItem
+                              key={category.id}
+                              value={category.id.toString()}
+                            >
+                              {category.category}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="unlockCriteria"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unlock Criteria</FormLabel>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          setShowAmtPointsRequired(value === "amtPoints");
+                        }}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select unlock criteria" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="public">Public</SelectItem>
+                          <SelectItem value="accountabilityPartner">
+                            Accountability Partner
+                          </SelectItem>
+                          <SelectItem value="amtPoints">AMT Points</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              {showAmtPointsRequired && (
+                <FormField
+                  control={form.control}
+                  name="amtPointsRequired"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>AMT Points Required</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Enter required AMT points"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(e.target.valueAsNumber)
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Video Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your video title" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -398,154 +564,157 @@ export default function VideoContentForm() {
               />
               <FormField
                 control={form.control}
-                name="lastName"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last Name</FormLabel>
+                    <FormLabel>Video Description</FormLabel>
                     <FormControl>
-                      <Input placeholder="Doe" {...field} />
+                      <Textarea
+                        placeholder="Enter your video description"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Video Link</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://example.com/your-video"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormItem>
-                  <FormLabel>Registered Wesion Account Email</FormLabel>
+                  <FormLabel>
+                    Please Upload Your Video If you don't have Video Link
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      type="email"
-                      placeholder="john.doe@example.com"
-                      {...field}
+                      type="file"
+                      name="video"
+                      onChange={(e) => handleFileChange(e, setVideo, "video")}
+                      accept="video/*"
+                      disabled={isUploading}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormDescription>
+                    {isUploading
+                      ? "Uploading..."
+                      : "Max file size is 500MB. Video will be uploaded to Vimeo."}
+                  </FormDescription>
+                  {isUploadingVimeo && (
+                    <div className="mt-2">
+                      <Progress value={uploadProgress} className="w-full" />
+                      <p className="text-sm text-gray-500 mt-1">
+                        {uploadProgress.toFixed(2)}% uploaded
+                      </p>
+                    </div>
+                  )}
                 </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="categoryIds"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem
-                            key={category.id}
-                            value={category.id.toString()}
-                          >
-                            {category.category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="unlockCriteria"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unlock Criteria</FormLabel>
-                    <Select
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        setShowAmtPointsRequired(value === "amtPoints");
-                      }}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select unlock criteria" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="public">Public</SelectItem>
-                        <SelectItem value="accountabilityPartner">
-                          Accountability Partner
-                        </SelectItem>
-                        <SelectItem value="amtPoints">AMT Points</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            {showAmtPointsRequired && (
-              <FormField
-                control={form.control}
-                name="amtPointsRequired"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>AMT Points Required</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Enter required AMT points"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Video Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your video title" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Video Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter your video description"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormItem>
+                  <FormLabel>
+                    Please Upload Your Video's Thumbnail Image
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      onChange={(e) =>
+                        handleFileChange(e, setThumbnail, "thumbnail")
+                      }
+                      accept="image/*"
+                    />
+                  </FormControl>
+                  <FormDescription>Max file size is 20MB</FormDescription>
+                </FormItem>
+                <FormItem>
+                  <FormLabel>
+                    Please add any supplemental materials for your video like
+                    pdf workbooks, audio's etc here
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      onChange={(e) =>
+                        handleFileChange(
+                          e,
+                          setSupplementalMaterial,
+                          "supplementalMaterial"
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormDescription>Max file size is 20MB</FormDescription>
+                </FormItem>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="keywords"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Video Keywords</FormLabel>
+                      <FormControl>
+                        <TagInput
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Type a keyword and press Enter"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Enter keywords for your video
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="tagNames"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Video Tags</FormLabel>
+                      <FormControl>
+                        <TagInput
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Type a tag and press Enter"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Enter tags for your video
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
-                name="url"
+                name="transcript"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Video Link</FormLabel>
+                    <FormLabel>
+                      Video Captions/Transcript If Available
+                    </FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="https://example.com/your-video"
+                      <Textarea
+                        placeholder="Enter video captions or transcript"
                         {...field}
                       />
                     </FormControl>
@@ -553,143 +722,27 @@ export default function VideoContentForm() {
                   </FormItem>
                 )}
               />
-              <FormItem>
-                <FormLabel>
-                  Please Upload Your Video If you don't have Video Link
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
-                    name="video"
-                    onChange={(e) => handleFileChange(e, setVideo, "video")}
-                    accept="video/*"
-                    disabled={isUploading}
-                  />
-                </FormControl>
-                <FormDescription>
-                  {isUploading
-                    ? "Uploading..."
-                    : "Max file size is 500MB. Video will be uploaded to Vimeo."}
-                </FormDescription>
-                {isUploadingVimeo && (
-                  <div className="mt-2">
-                    <Progress value={uploadProgress} className="w-full" />
-                    <p className="text-sm text-gray-500 mt-1">
-                      {uploadProgress.toFixed(2)}% uploaded
-                    </p>
-                  </div>
-                )}
-              </FormItem>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormItem>
-                <FormLabel>
-                  Please Upload Your Video's Thumbnail Image
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
-                    onChange={(e) =>
-                      handleFileChange(e, setThumbnail, "thumbnail")
-                    }
-                    accept="image/*"
-                  />
-                </FormControl>
-                <FormDescription>Max file size is 20MB</FormDescription>
-              </FormItem>
-              <FormItem>
-                <FormLabel>
-                  Please add any supplemental materials for your video like pdf
-                  workbooks, audio's etc here
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
-                    onChange={(e) =>
-                      handleFileChange(
-                        e,
-                        setSupplementalMaterial,
-                        "supplementalMaterial"
-                      )
-                    }
-                  />
-                </FormControl>
-                <FormDescription>Max file size is 20MB</FormDescription>
-              </FormItem>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="keywords"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Video Keywords</FormLabel>
-                    <FormControl>
-                      <TagInput
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Type a keyword and press Enter"
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Enter keywords for your video
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="tagNames"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Video Tags</FormLabel>
-                    <FormControl>
-                      <TagInput
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Type a tag and press Enter"
-                      />
-                    </FormControl>
-                    <FormDescription>Enter tags for your video</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name="transcript"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Video Captions/Transcript If Available</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter video captions or transcript"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isUploading || isSubmitting}
-            >
-              {isUploading
-                ? "Uploading..."
-                : isSubmitting
-                ? "Submitting..."
-                : "Submit"}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isUploading || isSubmitting}
+              >
+                {isUploading
+                  ? "Uploading..."
+                  : isSubmitting
+                  ? "Submitting..."
+                  : "Submit"}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+      {showConfetti && <ReactConfetti recycle={false} />}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+      />
+    </>
   );
 }

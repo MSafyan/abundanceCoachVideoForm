@@ -45,13 +45,24 @@ interface VideoResponse {
     id: number;
     userName: string;
     avatar: string;
+    email: string;
+  };
+  videoDetail?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    supplementalMaterialUrl: string;
+    subCategory: string;
+    keywords: string[];
+    transcript: string;
   };
 }
 
 function getVimeoId(url: string): string {
   const regex =
     /(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?/i;
-  const match = url.match(regex);
+  const match = url?.match(regex);
   return match ? match[1] : "";
 }
 
@@ -177,14 +188,43 @@ export default function AdminPage() {
                 {video.description}
               </p>
               <div className="flex items-center mb-4">
-                <Avatar className="h-10 w-10 mr-3">
-                  <AvatarImage
-                    src={video.user.avatar}
-                    alt={video.user.userName}
-                  />
-                  <AvatarFallback>{video.user.userName[0]}</AvatarFallback>
-                </Avatar>
-                <span className="font-medium">{video.user.userName}</span>
+                {video.userId ? (
+                  <>
+                    <Avatar className="h-10 w-10 mr-3">
+                      <AvatarImage
+                        src={video.user.avatar}
+                        alt={video.user.userName}
+                      />
+                      <AvatarFallback>{video.user.userName[0]}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium">{video.user.userName}</span>
+                  </>
+                ) : (
+                  <>
+                    <Avatar className="h-10 w-10 mr-3">
+                      <AvatarFallback>
+                        {video.videoDetail?.firstName?.[0] || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <div className="flex items-center">
+                        <span className="font-medium">
+                          {video.videoDetail?.firstName}{" "}
+                          {video.videoDetail?.lastName}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className="ml-2 text-xs bg-red-500 text-white"
+                        >
+                          Not Registered
+                        </Badge>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {video.videoDetail?.email}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-2 mb-4">
                 <div className="flex items-center">

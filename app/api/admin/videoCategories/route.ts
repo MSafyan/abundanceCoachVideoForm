@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkAuth } from "@/app/utils/auth";
+import { backendUrl } from "@/config";
 
 export async function GET(request: NextRequest) {
   try {
-    const backendResponse = await fetch(
-      `${process.env.BACKEND_URL}/videoCategories`,
-      {
-        method: "GET",
-      }
-    );
+    const backendResponse = await fetch(`${backendUrl}/videoCategories`, {
+      method: "GET",
+      cache: "no-store", // This tells NextJS not to cache this request
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    });
+
+    console.log(backendUrl);
 
     if (!backendResponse.ok) {
       const errorData = await backendResponse.json();
@@ -16,7 +21,16 @@ export async function GET(request: NextRequest) {
     }
 
     const result = await backendResponse.json();
-    return NextResponse.json(result);
+    console.log(result);
+
+    // Set cache control headers on the response
+    return NextResponse.json(result, {
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    });
   } catch (error) {
     console.error("Error fetching video categories:", error);
     return NextResponse.json(
@@ -29,3 +43,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const dynamic = "force-dynamic"; // This tells NextJS to not cache this route
