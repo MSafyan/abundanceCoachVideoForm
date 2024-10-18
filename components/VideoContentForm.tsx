@@ -33,6 +33,11 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { TagInput } from "./ui/tag-input";
 import * as tus from "tus-js-client";
+import { Progress } from "@/components/ui/progress";
+
+// Add this constant at the top of your file, after the imports
+const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB in bytes
+const MAX_FILE_SIZE_OTHER = 20 * 1024 * 1024; // 20MB for other files
 
 const formSchema = z.object({
   firstName: z.string().min(2, {
@@ -76,10 +81,12 @@ export default function VideoContentForm() {
   const [supplementalMaterial, setSupplementalMaterial] = useState<File | null>(
     null
   );
-  const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingVimeo, setIsUploadingVimeo] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [showAmtPointsRequired, setShowAmtPointsRequired] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -187,12 +194,28 @@ export default function VideoContentForm() {
   ) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
+
+      // Check file size based on file type
+      const maxSize = label === "video" ? MAX_FILE_SIZE : MAX_FILE_SIZE_OTHER;
+      if (file.size > maxSize) {
+        toast({
+          title: "File too large",
+          description: `The file size should not exceed ${
+            maxSize / (1024 * 1024)
+          }MB.`,
+          variant: "destructive",
+        });
+        // Reset the input
+        event.target.value = "";
+        return;
+      }
+
       setter(file);
 
-      setIsUploading(true);
-      if (event.target.name === "video") {
+      if (label === "video") {
         await uploadVideoToVimeo(file);
       } else {
+        setIsUploading(true);
         try {
           const fileUrl = await uploadFile(file, label);
           if (label === "thumbnail") {
@@ -202,50 +225,12 @@ export default function VideoContentForm() {
           }
         } catch (error) {
           console.error(`Error uploading ${label}:`, error);
+        } finally {
+          setIsUploading(false);
         }
       }
-      setIsUploading(false);
     }
   };
-
-  // const uploadVideoToVimeo = async (file: File) => {
-  //   setIsUploading(true);
-  //   const formData = new FormData();
-  //   formData.append("video", file);
-
-  //   try {
-  //     const response = await fetch("/api/admin/videos/fileToVimeo", {
-  //       method: "POST",
-  //       body: formData,
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error("Failed to upload video");
-  //     }
-
-  //     const result = await response.json();
-  //     if (result.success) {
-  //       toast({
-  //         title: "Video uploaded successfully",
-  //         description: "Your video has been uploaded to Vimeo.",
-  //       });
-  //       // Update the url field with the Vimeo URL
-  //       form.setValue("url", result.data?.data);
-  //     } else {
-  //       throw new Error(result.message || "Upload failed");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error uploading video:", error);
-  //     toast({
-  //       title: "Upload failed",
-  //       description:
-  //         "There was an error uploading your video. Please try again.",
-  //       variant: "destructive",
-  //     });
-  //   } finally {
-  //     setIsUploading(false);
-  //   }
-  // };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log("onSubmit function called");
@@ -304,7 +289,8 @@ export default function VideoContentForm() {
   };
 
   const uploadVideoToVimeo = async (file: File) => {
-    setIsUploading(true);
+    setIsUploadingVimeo(true);
+    setUploadProgress(0);
 
     try {
       // Step 1: Create a new video on Vimeo
@@ -325,9 +311,10 @@ export default function VideoContentForm() {
 
       const { upload_link, link } = await createResponse.json();
 
-      // Step 2: Upload the file to Vimeo using TUS protocol
       const upload = new tus.Upload(file, {
+        // Use Vimeo's provided `upload_link` directly
         endpoint: upload_link,
+        uploadUrl: upload_link, // Directly using the PATCH method on this URL
         retryDelays: [0, 3000, 5000, 10000, 20000],
         metadata: {
           filename: file.name,
@@ -341,12 +328,13 @@ export default function VideoContentForm() {
               "There was an error uploading your video. Please try again.",
             variant: "destructive",
           });
-          setIsUploading(false);
+          setIsUploadingVimeo(false);
+          setUploadProgress(0);
         },
         onProgress: function (bytesUploaded, bytesTotal) {
           const percentage = ((bytesUploaded / bytesTotal) * 100).toFixed(2);
           console.log(bytesUploaded, bytesTotal, percentage + "%");
-          // You can update a progress bar here if you want
+          setUploadProgress(parseFloat(percentage));
         },
         onSuccess: function () {
           console.log("Download %s from %s", file.name, upload.url);
@@ -355,10 +343,9 @@ export default function VideoContentForm() {
             description: "Your video has been uploaded to Vimeo.",
           });
           form.setValue("url", link);
-          setIsUploading(false);
+          setIsUploadingVimeo(false);
+          setUploadProgress(0);
         },
-        // Add the following option to use PATCH requests
-        overridePatchMethod: false,
       });
 
       // Start the upload
@@ -371,7 +358,8 @@ export default function VideoContentForm() {
           "There was an error uploading your video. Please try again.",
         variant: "destructive",
       });
-      setIsUploading(false);
+      setIsUploadingVimeo(false);
+      setUploadProgress(0);
     }
   };
 
@@ -581,8 +569,16 @@ export default function VideoContentForm() {
                 <FormDescription>
                   {isUploading
                     ? "Uploading..."
-                    : "Max file size is 20 MB. Video will be uploaded to Vimeo."}
+                    : "Max file size is 500MB. Video will be uploaded to Vimeo."}
                 </FormDescription>
+                {isUploadingVimeo && (
+                  <div className="mt-2">
+                    <Progress value={uploadProgress} className="w-full" />
+                    <p className="text-sm text-gray-500 mt-1">
+                      {uploadProgress.toFixed(2)}% uploaded
+                    </p>
+                  </div>
+                )}
               </FormItem>
             </div>
 
@@ -600,7 +596,7 @@ export default function VideoContentForm() {
                     accept="image/*"
                   />
                 </FormControl>
-                <FormDescription>Max file size is 20 MB</FormDescription>
+                <FormDescription>Max file size is 20MB</FormDescription>
               </FormItem>
               <FormItem>
                 <FormLabel>
@@ -619,6 +615,7 @@ export default function VideoContentForm() {
                     }
                   />
                 </FormControl>
+                <FormDescription>Max file size is 20MB</FormDescription>
               </FormItem>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
