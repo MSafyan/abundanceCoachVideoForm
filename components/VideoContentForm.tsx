@@ -515,11 +515,11 @@ export default function VideoContentForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="public">Public</SelectItem>
+                          <SelectItem value="public">No Unlock Criteria</SelectItem>
                           <SelectItem value="accountabilityPartner">
                             Accountability Partner
                           </SelectItem>
-                          <SelectItem value="amtPoints">AMT Points</SelectItem>
+                          <SelectItem value="amtPoints">Pay Wall</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -533,11 +533,11 @@ export default function VideoContentForm() {
                   name="amtPointsRequired"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>AMT Points Required</FormLabel>
+                      <FormLabel>Amount Required</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder="Enter required AMT points"
+                          placeholder="Enter Amount"
                           {...field}
                           onChange={(e) =>
                             field.onChange(e.target.valueAsNumber)
@@ -598,7 +598,7 @@ export default function VideoContentForm() {
                 />
                 <FormItem>
                   <FormLabel>
-                    Please Upload Your Video If you don't have Video Link
+                    Please Upload Your Video If you don't have a Video Link
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -644,7 +644,7 @@ export default function VideoContentForm() {
                 <FormItem>
                   <FormLabel>
                     Please add any supplemental materials for your video like
-                    pdf workbooks, audio's etc here
+                    pdf's, workbooks, audio's etc here
                   </FormLabel>
                   <FormControl>
                     <Input
