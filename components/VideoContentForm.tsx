@@ -31,18 +31,18 @@ export default function VideoContentForm() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isVimeoAuthenticated, setIsVimeoAuthenticated] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
   const { categories } = useCategories();
   const { isUploading } = useFileUpload();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
       email: "",
       categoryIds: "",
       title: "",
       description: "",
+      videoHostedOn: "vimeoWesion",
       url: "",
       keywords: [],
       tagNames: [],
@@ -68,7 +68,6 @@ export default function VideoContentForm() {
     try {
       const response = await fetch("/api/vimeoAuth", { method: "GET" });
       const data = await response.json();
-      debugger;
       if (data.data) {
         window.location.href = data.data;
       } else {
@@ -105,32 +104,31 @@ export default function VideoContentForm() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <PersonalInfoFields form={form} />
-              <VideoDetailsFields form={form} categories={categories} />
-              <Button
-                type="button"
-                onClick={handleVimeoAuth}
-                className="w-full mb-4"
-                disabled={isVimeoAuthenticated}
-              >
-                {isVimeoAuthenticated
-                  ? "Vimeo Authenticated"
-                  : "Authenticate with Vimeo"}
-              </Button>
-              <ContentFields form={form} />
-              <FileUploadFields form={form} />
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isUploading || isSubmitting}
-              >
-                {isUploading
-                  ? "Uploading..."
-                  : isSubmitting
-                  ? "Submitting..."
-                  : "Submit"}
-              </Button>
+              <PersonalInfoFields
+                form={form}
+                setIsEmailVerified={setIsEmailVerified}
+              />
+              {isEmailVerified && (
+                <>
+                  <VideoDetailsFields form={form} categories={categories} />
+                  <ContentFields
+                    form={form}
+                    handleVimeoAuth={handleVimeoAuth}
+                  />
+                  <FileUploadFields form={form} />
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isUploading || isSubmitting}
+                  >
+                    {isUploading
+                      ? "Uploading..."
+                      : isSubmitting
+                      ? "Submitting..."
+                      : "Submit"}
+                  </Button>
+                </>
+              )}
             </form>
           </Form>
         </CardContent>

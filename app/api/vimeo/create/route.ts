@@ -17,6 +17,9 @@ export async function POST(request: Request) {
           size: size,
         },
         name: name,
+        privacy: {
+          view: "private",
+        },
       }),
     });
 

@@ -1,12 +1,6 @@
 import { z } from "zod";
 
 const formSchema = z.object({
-  firstName: z.string().min(2, {
-    message: "First name must be at least 2 characters.",
-  }),
-  lastName: z.string().min(2, {
-    message: "Last name must be at least 2 characters.",
-  }),
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
@@ -19,9 +13,13 @@ const formSchema = z.object({
   description: z.string().min(10, {
     message: "Video description must be at least 10 characters.",
   }),
-  url: z.string().url({
-    message: "Please enter a valid URL.",
-  }),
+  videoHostedOn: z.enum(["vimeoWesion", "vimeoPersonal", "youtube", "others"]),
+  url: z
+    .string()
+    .url({
+      message: "Please enter a valid URL.",
+    })
+    .optional(),
   keywords: z.array(z.string()),
   tagNames: z.array(z.string()),
   transcript: z.string(),
