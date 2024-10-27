@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -25,15 +25,20 @@ import { FileUploadFields } from "./FileUploadFields";
 import { useCategories } from "@/hooks/useCategories";
 import { useFileUpload } from "@/hooks/usefileUpload";
 import { toast } from "@/hooks/use-toast";
+import { useAppContext } from "@/app/context/AppContext";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function VideoContentForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [isVimeoAuthenticated, setIsVimeoAuthenticated] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [userId, setUserId] = useState<number | null>(null);
   const { categories } = useCategories();
-  const { isUploading } = useFileUpload();
+  const { isUploading, isUploadingVimeo, uploadProgress } = useFileUpload();
+  const { isVimeoAuthenticated, setIsVimeoAuthenticated } = useAppContext();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,6 +46,7 @@ export default function VideoContentForm() {
       email: "",
       categoryIds: "",
       title: "",
+      unlockCriteria: ["public"],
       description: "",
       videoHostedOn: "vimeoWesion",
       url: "",
@@ -49,12 +55,71 @@ export default function VideoContentForm() {
       transcript: "",
       thumbnail: "",
       supplementalMaterialUrl: "",
-      unlockCriteria: "public",
       amtPointsRequired: undefined,
     },
   });
 
+  useEffect(() => {
+    // Check if we're returning from Vimeo authentication
+    const isReturningFromVimeo = searchParams.get("vimeoAuth") === "success";
+
+    if (isReturningFromVimeo) {
+      // Restore form data from localStorage
+      const savedFormData = localStorage.getItem("videoContentFormData");
+      if (savedFormData) {
+        const parsedData = JSON.parse(savedFormData);
+        form.reset(parsedData);
+        localStorage.removeItem("videoContentFormData");
+      }
+
+      // Remove the query parameter
+      router.replace("/", { scroll: false });
+    }
+  }, []);
+
+  useEffect(() => {
+    // Check if the user is authenticated with Vimeo
+    const checkVimeoAuth = async () => {
+      if (userId) {
+        try {
+          const response = await fetch(
+            `/api/vimeoAuth/status?userId=${userId}`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to check Vimeo auth status");
+          }
+          const data = await response.json();
+          setIsVimeoAuthenticated(data.isAuthenticated);
+        } catch (error) {
+          console.error("Error checking Vimeo auth status:", error);
+          toast({
+            title: "Error",
+            description: "Failed to check Vimeo authentication status.",
+            variant: "destructive",
+          });
+        }
+      }
+    };
+
+    // checkVimeoAuth();
+  }, [userId]);
+
+  const getButtonText = () => {
+    if (isUploading || isUploadingVimeo) return "Uploading...";
+    if (isSubmitting) return "Submitting...";
+    return "Submit";
+  };
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    // if (!isVimeoAuthenticated && values.videoHostedOn === "vimeoPersonal") {
+    //   toast({
+    //     title: "Error",
+    //     description: "Please authenticate with Vimeo first.",
+    //     variant: "destructive",
+    //   });
+    //   return;
+    // }
+
     await handleSubmit(
       values,
       setIsSubmitting,
@@ -65,8 +130,25 @@ export default function VideoContentForm() {
   };
 
   const handleVimeoAuth = async () => {
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "Please verify your email first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Save form data to localStorage before redirecting
+    localStorage.setItem(
+      "videoContentFormData",
+      JSON.stringify(form.getValues())
+    );
+
     try {
-      const response = await fetch("/api/vimeoAuth", { method: "GET" });
+      const response = await fetch(`/api/vimeoAuth?userId=${userId}`, {
+        method: "GET",
+      });
       const data = await response.json();
       if (data.data) {
         window.location.href = data.data;
@@ -107,8 +189,10 @@ export default function VideoContentForm() {
               <PersonalInfoFields
                 form={form}
                 setIsEmailVerified={setIsEmailVerified}
+                setUserId={setUserId}
+                userId={userId}
               />
-              {isEmailVerified && (
+              {(isEmailVerified || isVimeoAuthenticated) && (
                 <>
                   <VideoDetailsFields form={form} categories={categories} />
                   <ContentFields
@@ -119,13 +203,9 @@ export default function VideoContentForm() {
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={isUploading || isSubmitting}
+                    disabled={isUploading || isUploadingVimeo || isSubmitting}
                   >
-                    {isUploading
-                      ? "Uploading..."
-                      : isSubmitting
-                      ? "Submitting..."
-                      : "Submit"}
+                    {getButtonText()}
                   </Button>
                 </>
               )}

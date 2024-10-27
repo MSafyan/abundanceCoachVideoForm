@@ -8,8 +8,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { useFileUpload } from "../hooks/usefileUpload";
 
-export const FileUploadFields = ({ form }: { form: any }) => {
-  const { handleFileChange } = useFileUpload();
+interface FileUploadFieldsProps {
+  form: any;
+}
+
+export const FileUploadFields: React.FC<FileUploadFieldsProps> = ({ form }) => {
+  const { isUploading, isUploadingVimeo, uploadProgress, handleFileChange } =
+    useFileUpload();
 
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [supplementalMaterial, setSupplementalMaterial] = useState<File | null>(
@@ -27,9 +32,12 @@ export const FileUploadFields = ({ form }: { form: any }) => {
               handleFileChange(e, setThumbnail, "thumbnail", form)
             }
             accept="image/*"
+            disabled={isUploading}
           />
         </FormControl>
-        <FormDescription>Max file size is 20MB</FormDescription>
+        <FormDescription>
+          {isUploading ? "Uploading..." : "Max file size is 20MB"}
+        </FormDescription>
       </FormItem>
       <FormItem>
         <FormLabel>
@@ -47,9 +55,12 @@ export const FileUploadFields = ({ form }: { form: any }) => {
                 form
               )
             }
+            disabled={isUploading}
           />
         </FormControl>
-        <FormDescription>Max file size is 20MB</FormDescription>
+        <FormDescription>
+          {isUploading ? "Uploading..." : "Max file size is 20MB"}
+        </FormDescription>
       </FormItem>
     </div>
   );

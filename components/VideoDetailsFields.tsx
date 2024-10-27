@@ -5,6 +5,7 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,6 +15,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  MultiSelect,
+  MultiSelectTrigger,
+  MultiSelectValue,
+  MultiSelectContent,
+  MultiSelectItem,
+} from "@/components/ui/multi-select";
 import { Category } from "@/hooks/useCategories";
 
 export const VideoDetailsFields = ({
@@ -23,7 +31,27 @@ export const VideoDetailsFields = ({
   form: any;
   categories: Category[];
 }) => {
-  const [showAmtPointsRequired, setShowAmtPointsRequired] = useState(false);
+  const [selectedCriteria, setSelectedCriteria] = useState<string[]>([
+    "public",
+  ]);
+
+  const handleUnlockCriteriaChange = (values: string[]) => {
+    setSelectedCriteria(values);
+    form.setValue("unlockCriteria", values);
+  };
+
+  // Format selected values for display
+  const formatSelected = (values: string[]) => {
+    if (!values.length) return "Select unlock criteria";
+    return values
+      .map((value) => {
+        const formatted =
+          value.charAt(0).toUpperCase() +
+          value.slice(1).replace(/([A-Z])/g, " $1");
+        return formatted;
+      })
+      .join(", ");
+  };
 
   return (
     <>
@@ -61,32 +89,37 @@ export const VideoDetailsFields = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Unlock Criteria</FormLabel>
-              <Select
-                onValueChange={(value) => {
-                  field.onChange(value);
-                  setShowAmtPointsRequired(value === "amtPoints");
-                }}
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select unlock criteria" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="public">Public</SelectItem>
-                  <SelectItem value="accountabilityPartner">
-                    Accountability Partner
-                  </SelectItem>
-                  <SelectItem value="amtPoints">AMT Points</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <MultiSelect
+                  value={selectedCriteria}
+                  onValueChange={handleUnlockCriteriaChange}
+                  multiple={true}
+                >
+                  <MultiSelectTrigger>
+                    <MultiSelectValue>
+                      {formatSelected(selectedCriteria)}
+                    </MultiSelectValue>
+                  </MultiSelectTrigger>
+                  <MultiSelectContent>
+                    <MultiSelectItem value="public">Public</MultiSelectItem>
+                    <MultiSelectItem value="accountabilityPartner">
+                      Accountability Partner
+                    </MultiSelectItem>
+                    <MultiSelectItem value="amtPoints">
+                      AMT Points
+                    </MultiSelectItem>
+                  </MultiSelectContent>
+                </MultiSelect>
+              </FormControl>
+              <FormDescription>
+                Select one or more unlock criteria for your video
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
       </div>
-      {showAmtPointsRequired && (
+      {selectedCriteria.includes("amtPoints") && (
         <FormField
           control={form.control}
           name="amtPointsRequired"

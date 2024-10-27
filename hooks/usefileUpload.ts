@@ -7,9 +7,15 @@ const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB in bytes
 const MAX_FILE_SIZE_OTHER = 20 * 1024 * 1024; // 20MB for other files
 
 export const useFileUpload = () => {
-  const [isUploading, setIsUploading] = useState(false);
-  const [isUploadingVimeo, setIsUploadingVimeo] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStates, setUploadStates] = useState({
+    isUploading: false,
+    isUploadingVimeo: false,
+    uploadProgress: 0,
+  });
+
+  const updateUploadState = (updates: Partial<typeof uploadStates>) => {
+    setUploadStates((prev) => ({ ...prev, ...updates }));
+  };
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -17,6 +23,7 @@ export const useFileUpload = () => {
     label: string,
     form: any
   ) => {
+    debugger;
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
 
@@ -38,14 +45,10 @@ export const useFileUpload = () => {
       setter(file);
 
       if (label === "video") {
-        await uploadVideoToVimeo(
-          file,
-          setIsUploadingVimeo,
-          setUploadProgress,
-          form
-        );
+        await uploadVideoToVimeo(file, updateUploadState, form);
       } else {
-        setIsUploading(true);
+        console.log("uploading file", "setIsUploadingtrue");
+        updateUploadState({ isUploading: true });
         try {
           const fileUrl = await uploadFile(file, label);
           if (label === "thumbnail") {
@@ -56,7 +59,7 @@ export const useFileUpload = () => {
         } catch (error) {
           console.error(`Error uploading ${label}:`, error);
         } finally {
-          setIsUploading(false);
+          updateUploadState({ isUploading: false });
         }
       }
     }
@@ -64,12 +67,11 @@ export const useFileUpload = () => {
 
   const uploadVideoToVimeo = async (
     file: File,
-    setIsUploadingVimeo: (isUploading: boolean) => void,
-    setUploadProgress: (progress: number) => void,
+    updateUploadState: (updates: Partial<typeof uploadStates>) => void,
     form: any
   ) => {
-    setIsUploadingVimeo(true);
-    setUploadProgress(0);
+    updateUploadState({ isUploadingVimeo: true });
+    updateUploadState({ uploadProgress: 0 });
 
     try {
       // Step 1: Create a new video on Vimeo
@@ -107,13 +109,13 @@ export const useFileUpload = () => {
               "There was an error uploading your video. Please try again.",
             variant: "destructive",
           });
-          setIsUploadingVimeo(false);
-          setUploadProgress(0);
+          updateUploadState({ isUploadingVimeo: false });
+          updateUploadState({ uploadProgress: 0 });
         },
         onProgress: function (bytesUploaded, bytesTotal) {
           const percentage = ((bytesUploaded / bytesTotal) * 100).toFixed(2);
           console.log(bytesUploaded, bytesTotal, percentage + "%");
-          setUploadProgress(parseFloat(percentage));
+          updateUploadState({ uploadProgress: parseFloat(percentage) });
         },
         onSuccess: function () {
           console.log("Download %s from %s", file.name, upload.url);
@@ -122,8 +124,8 @@ export const useFileUpload = () => {
             description: "Your video has been uploaded to Vimeo.",
           });
           form.setValue("url", link);
-          setIsUploadingVimeo(false);
-          setUploadProgress(0);
+          updateUploadState({ isUploadingVimeo: false });
+          updateUploadState({ uploadProgress: 0 });
         },
       });
 
@@ -137,13 +139,13 @@ export const useFileUpload = () => {
           "There was an error uploading your video. Please try again.",
         variant: "destructive",
       });
-      setIsUploadingVimeo(false);
-      setUploadProgress(0);
+      updateUploadState({ isUploadingVimeo: false });
+      updateUploadState({ uploadProgress: 0 });
     }
   };
 
   const uploadFile = async (file: File, label: string) => {
-    setIsUploading(true);
+    updateUploadState({ isUploading: true });
     try {
       console.log("uploading file", file);
       const signedUrlResponse = await fetch("/api/files/signed-url", {
@@ -191,15 +193,12 @@ export const useFileUpload = () => {
       });
       throw error;
     } finally {
-      setIsUploading(false);
+      updateUploadState({ isUploading: false });
     }
   };
 
   return {
-    isUploading,
-    isUploadingVimeo,
-    uploadProgress,
-    setUploadProgress,
+    ...uploadStates,
     handleFileChange,
     uploadVideoToVimeo,
     uploadFile,

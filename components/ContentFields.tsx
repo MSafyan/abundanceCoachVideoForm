@@ -111,11 +111,11 @@ export const ContentFields = ({
           )}
         />
       )}
-      {showVimeoAuthButton && (
+      {/* {showVimeoAuthButton && (
         <Button type="button" onClick={handleVimeoAuth} className="mt-2">
           Authenticate with Vimeo
         </Button>
-      )}
+      )} */}
       <FormField
         control={form.control}
         name="keywords"
@@ -168,6 +168,27 @@ export const ContentFields = ({
           </FormItem>
         )}
       />
+
+      {form.watch("unlockCriteria").includes("amtPoints") && (
+        <FormField
+          control={form.control}
+          name="amtPointsRequired"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>AMT Points Required</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="Enter required AMT points"
+                  {...field}
+                  onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
     </>
   );
 };

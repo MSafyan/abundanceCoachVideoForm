@@ -13,11 +13,15 @@ import { toast } from "@/hooks/use-toast";
 interface PersonalInfoFieldsProps {
   form: any;
   setIsEmailVerified: React.Dispatch<React.SetStateAction<boolean>>;
+  setUserId: React.Dispatch<React.SetStateAction<number | null>>;
+  userId: number | null;
 }
 
 export const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
   form,
   setIsEmailVerified,
+  setUserId,
+  userId,
 }) => {
   const [isChecking, setIsChecking] = useState(false);
 
@@ -33,12 +37,14 @@ export const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
 
       if (data.success) {
         setIsEmailVerified(true);
+        setUserId(data.data.userId);
         toast({
           title: "Email Verified",
           description: "You can now proceed with the form.",
         });
       } else {
         setIsEmailVerified(false);
+        setUserId(null);
         toast({
           title: "Email Not Found",
           description:
@@ -73,12 +79,12 @@ export const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
                   type="email"
                   placeholder="john.doe@example.com"
                   {...field}
-                  disabled={form.getValues("email") && !isChecking}
+                  disabled={isChecking || userId !== null}
                 />
                 <Button
                   type="button"
                   onClick={checkEmail}
-                  disabled={isChecking || !form.getValues("email")}
+                  disabled={isChecking}
                 >
                   {isChecking ? "Checking..." : "Verify Email"}
                 </Button>

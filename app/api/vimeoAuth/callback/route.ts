@@ -1,18 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { backendUrl } from "@/config";
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     // Handle the OAuth callback from Vimeo
-    const body = await request.json();
+    const code = request.nextUrl.searchParams.get("code");
+    const state = request.nextUrl.searchParams.get("state");
+    // Get the host from the request
+    const host = request.headers.get("host");
+    const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
 
-    const backendResponse = await fetch(`${backendUrl}/vimeoAuth/callback`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+    // Create the callback URL
+    const redirectUri = `${protocol}://${host}/vimeoCallback`;
+
+    const backendResponse = await fetch(
+      `${backendUrl}/vimeoAuth/callback?code=${code}&state=${state}&redirectUri=${redirectUri}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     if (!backendResponse.ok) {
       const errorData = await backendResponse.json();
@@ -20,9 +29,12 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await backendResponse.json();
+
+    // Redirect to the form page with a success parameter
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error completing Vimeo OAuth:", error);
+    // Redirect to the form page with an error parameter
     return NextResponse.json(
       {
         success: false,

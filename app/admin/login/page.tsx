@@ -26,7 +26,6 @@ export default function AdminLogin() {
     if (res.ok && data.success) {
       router.push("/admin");
     } else {
-      debugger;
       toast({
         title: "Login Failed",
         description: data.message || "Invalid email or password",

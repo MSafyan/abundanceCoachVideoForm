@@ -25,7 +25,9 @@ const formSchema = z.object({
   transcript: z.string(),
   thumbnail: z.string().optional(),
   supplementalMaterialUrl: z.string().optional(),
-  unlockCriteria: z.enum(["public", "accountabilityPartner", "amtPoints"]),
+  unlockCriteria: z
+    .array(z.enum(["public", "accountabilityPartner", "amtPoints"]))
+    .min(1, { message: "At least one unlock criteria must be selected" }),
   amtPointsRequired: z.number().optional(),
 });
 
