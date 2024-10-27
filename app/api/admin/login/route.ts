@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       // Set the access token in an HTTP-only cookie
       apiResponse.cookies.set("access_token", accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NEXT_PUBLIC_APP_ENV === "production",
         sameSite: "strict",
         maxAge: 604800, // 1 week
       });
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       // Set user role in a separate cookie (not HTTP-only so it's accessible by client-side JavaScript)
       apiResponse.cookies.set("user_role", user.role, {
         httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NEXT_PUBLIC_APP_ENV === "production",
         sameSite: "strict",
         maxAge: 604800, // 1 week
       });

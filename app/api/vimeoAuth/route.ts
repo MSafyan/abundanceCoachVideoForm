@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
 
     // Get the host from the request
     const host = request.headers.get("host");
-    const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
+    const protocol =
+      process.env.NEXT_PUBLIC_APP_ENV === "development" ? "http" : "https";
 
     // Create the callback URL
     const redirectUri = `${protocol}://${host}/vimeoCallback`;
