@@ -101,12 +101,14 @@ export const VideoDetailsFields = ({
                     </MultiSelectValue>
                   </MultiSelectTrigger>
                   <MultiSelectContent>
-                    <MultiSelectItem value="public">Public</MultiSelectItem>
+                    <MultiSelectItem value="public">
+                      No Unlock Criteria
+                    </MultiSelectItem>
                     <MultiSelectItem value="accountabilityPartner">
                       Accountability Partner
                     </MultiSelectItem>
                     <MultiSelectItem value="amtPoints">
-                      AMT Points
+                      Pay Wall
                     </MultiSelectItem>
                   </MultiSelectContent>
                 </MultiSelect>
