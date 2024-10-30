@@ -34,25 +34,25 @@ export const handleSubmit = async (
       body: JSON.stringify(formData),
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to submit video details");
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message);
     }
 
-    const result = await response.json();
-
-    if (result.success) {
+    if (data.success) {
       setShowSuccessModal(true);
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 5000); // Stop confetti after 5 seconds
       form.reset();
     } else {
-      throw new Error(result.message || "Submission failed");
+      throw new Error(data.message || "Submission failed");
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error submitting video details:", error);
     toast({
       title: "Error",
-      description: "Failed to submit video details. Please try again.",
+      description:
+        error.message || "Failed to submit video details. Please try again.",
       variant: "destructive",
     });
   } finally {

@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const { name, size } = await request.json();
-    debugger;
     console.log(name, size);
     const createResponse = await fetch("https://api.vimeo.com/me/videos", {
       method: "POST",
@@ -18,9 +17,9 @@ export async function POST(request: Request) {
           size: size,
         },
         name: name,
-        // privacy: {
-        //   view: "private",
-        // },
+        privacy: {
+          view: "unlisted",
+        },
       }),
     });
 

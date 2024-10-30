@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { useFileUpload } from "../hooks/usefileUpload";
 
 const VideoUploadField = ({ form }: { form: any }) => {
-  const { isUploading, isUploadingVimeo, uploadProgress, handleFileChange } =
+  const { isUploadingVimeo, uploadProgress, handleFileChange } =
     useFileUpload();
 
   const [video, setVideo] = useState<File | null>(null);
@@ -26,11 +26,11 @@ const VideoUploadField = ({ form }: { form: any }) => {
           name="video"
           onChange={(e) => handleFileChange(e, setVideo, "video", form)}
           accept="video/*"
-          disabled={isUploading}
+          disabled={isUploadingVimeo}
         />
       </FormControl>
       <FormDescription>
-        {isUploading
+        {isUploadingVimeo
           ? "Uploading..."
           : "Max file size is 500MB. Video will be uploaded to Vimeo."}
       </FormDescription>

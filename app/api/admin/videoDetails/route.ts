@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.json();
 
-    const backendResponse = await fetch(`${backendUrl}/videoDetails`, {
+    const response = await fetch(`${backendUrl}/videoDetails`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -13,18 +13,22 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(formData),
     });
 
-    if (!backendResponse.ok) {
-      const errorData = await backendResponse.json();
-      throw new Error(errorData.message || "Failed to submit video details");
+    const data = await response.json();
+    if (data.success) {
+      const result = data.data;
+
+      return NextResponse.json({
+        success: true,
+        message: "Video details submitted successfully",
+        data: result,
+      });
+    } else {
+      console.log("data", data);
+      return NextResponse.json(
+        { success: false, message: data.message },
+        { status: 400 }
+      );
     }
-
-    const result = await backendResponse.json();
-
-    return NextResponse.json({
-      success: true,
-      message: "Video details submitted successfully",
-      data: result,
-    });
   } catch (error) {
     console.error("Error submitting video details:", error);
     return NextResponse.json(

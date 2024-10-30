@@ -35,7 +35,7 @@ export default function VideoContentForm() {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [userId, setUserId] = useState<number | null>(null);
   const { categories } = useCategories();
-  const { isUploading, isUploadingVimeo, uploadProgress } = useFileUpload();
+  const { isUploading, isUploadingVimeo } = useFileUpload();
   const { isVimeoAuthenticated, setIsVimeoAuthenticated } = useAppContext();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -69,6 +69,7 @@ export default function VideoContentForm() {
       if (savedFormData) {
         const parsedData = JSON.parse(savedFormData);
         form.reset(parsedData);
+
         localStorage.removeItem("videoContentFormData");
       }
 
@@ -89,19 +90,19 @@ export default function VideoContentForm() {
             throw new Error("Failed to check Vimeo auth status");
           }
           const data = await response.json();
-          setIsVimeoAuthenticated(data.isAuthenticated);
+          setIsVimeoAuthenticated(data.data?.isAuthenticated);
         } catch (error) {
           console.error("Error checking Vimeo auth status:", error);
-          toast({
-            title: "Error",
-            description: "Failed to check Vimeo authentication status.",
-            variant: "destructive",
-          });
+          // toast({
+          //   title: "Error",
+          //   description: "Failed to check Vimeo authentication status.",
+          //   variant: "destructive",
+          // });
         }
       }
     };
 
-    // checkVimeoAuth();
+    checkVimeoAuth();
   }, [userId]);
 
   const getButtonText = () => {
@@ -111,14 +112,23 @@ export default function VideoContentForm() {
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    // if (!isVimeoAuthenticated && values.videoHostedOn === "vimeoPersonal") {
-    //   toast({
-    //     title: "Error",
-    //     description: "Please authenticate with Vimeo first.",
-    //     variant: "destructive",
-    //   });
-    //   return;
-    // }
+    if (!isVimeoAuthenticated && values.videoHostedOn === "vimeoPersonal") {
+      toast({
+        title: "Error",
+        description: "Please authenticate with Vimeo first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isUploading || isUploadingVimeo) {
+      toast({
+        title: "Error",
+        description: "Please wait for the upload to complete.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     await handleSubmit(
       values,
@@ -198,6 +208,7 @@ export default function VideoContentForm() {
                   <ContentFields
                     form={form}
                     handleVimeoAuth={handleVimeoAuth}
+                    isVimeoAuthenticated={isVimeoAuthenticated}
                   />
                   <FileUploadFields form={form} />
                   <Button

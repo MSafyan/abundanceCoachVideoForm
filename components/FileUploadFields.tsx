@@ -13,8 +13,7 @@ interface FileUploadFieldsProps {
 }
 
 export const FileUploadFields: React.FC<FileUploadFieldsProps> = ({ form }) => {
-  const { isUploading, isUploadingVimeo, uploadProgress, handleFileChange } =
-    useFileUpload();
+  const { isUploading, handleFileChange } = useFileUpload();
 
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [supplementalMaterial, setSupplementalMaterial] = useState<File | null>(

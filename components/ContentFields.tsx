@@ -18,9 +18,11 @@ import { Button } from "@/components/ui/button";
 export const ContentFields = ({
   form,
   handleVimeoAuth,
+  isVimeoAuthenticated,
 }: {
   form: any;
   handleVimeoAuth: () => void;
+  isVimeoAuthenticated: boolean;
 }) => {
   const [showVimeoAuthButton, setShowVimeoAuthButton] = useState(false);
 
@@ -66,7 +68,8 @@ export const ContentFields = ({
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
-                defaultValue="vimeoWesion"
+                defaultValue={field.value}
+                value={field.value}
                 className="flex flex-col space-y-1"
               >
                 <div className="flex items-center space-x-2">
@@ -111,11 +114,11 @@ export const ContentFields = ({
           )}
         />
       )}
-      {/* {showVimeoAuthButton && (
+      {!isVimeoAuthenticated && showVimeoAuthButton && (
         <Button type="button" onClick={handleVimeoAuth} className="mt-2">
           Authenticate with Vimeo
         </Button>
-      )} */}
+      )}
       <FormField
         control={form.control}
         name="keywords"
@@ -168,27 +171,6 @@ export const ContentFields = ({
           </FormItem>
         )}
       />
-
-      {form.watch("unlockCriteria").includes("amtPoints") && (
-        <FormField
-          control={form.control}
-          name="amtPointsRequired"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>AMT Points Required</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter required AMT points"
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
     </>
   );
 };
