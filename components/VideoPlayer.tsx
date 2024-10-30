@@ -16,12 +16,12 @@ const VimeoPlayer = () => {
         title="trainer"
       />
       <iframe
-        src="https://player.vimeo.com/video/1017010145?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=478322"
+        src="https://player.vimeo.com/video/1020988224?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=478322"
         width="640"
         height="360"
         frameBorder="0"
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
-        title="trainer"
+        title="deno2.mp4"
       />
       {/* </CardContent>÷ */}
     </Card>
