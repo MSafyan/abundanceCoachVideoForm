@@ -21,6 +21,19 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Clock, Star, Calendar, CheckCircle, XCircle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
 interface VideoResponse {
   id: number;
@@ -149,6 +162,38 @@ export default function AdminPage() {
     }
   };
 
+  const deleteVideo = async (videoId: number) => {
+    try {
+      const res = await fetch(`/api/admin/videos/${videoId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to delete video: ${res.status}`);
+      }
+
+      const data = await res.json();
+      if (data.success) {
+        setVideoResponses((prevVideos) =>
+          prevVideos.filter((video) => video.id !== videoId)
+        );
+        toast({
+          title: "Success",
+          description: "Video deleted successfully",
+        });
+      } else {
+        throw new Error(data.message || "Failed to delete video");
+      }
+    } catch (error) {
+      console.error("Error deleting video:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete video. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (!isAuthenticated || isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -271,14 +316,14 @@ export default function AdminPage() {
                 ))}
               </div>
             </CardContent>
-            <CardFooter className="bg-muted p-6">
+            <CardFooter className="bg-muted p-6 flex justify-between items-center">
               <Select
                 defaultValue={video.isVerified ? "verified" : "unverified"}
                 onValueChange={(value) =>
                   updateVideoStatus(video.id, value === "verified")
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -286,6 +331,32 @@ export default function AdminPage() {
                   <SelectItem value="unverified">Unverified</SelectItem>
                 </SelectContent>
               </Select>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="icon">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete
+                      the video and remove all associated data.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => deleteVideo(video.id)}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardFooter>
           </Card>
         ))}

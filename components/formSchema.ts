@@ -4,9 +4,13 @@ const formSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
-  categoryIds: z.string({
-    required_error: "Category is required.",
-  }),
+  categoryIds: z
+    .string({
+      required_error: "Please select a category.",
+    })
+    .min(1, {
+      message: "Please select a category.",
+    }),
   title: z.string().min(5, {
     message: "Video title must be at least 5 characters.",
   }),
