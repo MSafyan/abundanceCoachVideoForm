@@ -76,6 +76,7 @@ export const ContentFields = ({
       <FormField
         control={form.control}
         name="videoHostedOn"
+        disabled={isFieldDisabled("videoHostedOn")}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Video Hosted On</FormLabel>
@@ -84,6 +85,7 @@ export const ContentFields = ({
                 onValueChange={field.onChange}
                 defaultValue={field.value}
                 value={field.value}
+                disabled={isFieldDisabled("videoHostedOn")}
                 className="flex flex-col space-y-1"
               >
                 <div className="flex items-center space-x-2">
@@ -120,6 +122,7 @@ export const ContentFields = ({
               <FormControl>
                 <Input
                   placeholder="https://example.com/your-video"
+                  disabled={isFieldDisabled("url")}
                   {...field}
                 />
               </FormControl>

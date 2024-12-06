@@ -72,6 +72,7 @@ export const VideoDetailsFields = ({
               <Select
                 onValueChange={field.onChange}
                 disabled={isFieldDisabled("categoryIds")}
+                value={field.value.toString()}
               >
                 <FormControl>
                   <SelectTrigger>
