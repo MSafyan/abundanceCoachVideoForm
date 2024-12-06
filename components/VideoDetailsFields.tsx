@@ -23,13 +23,16 @@ import {
   MultiSelectItem,
 } from "@/components/ui/multi-select";
 import { Category } from "@/hooks/useCategories";
+import { UPDATABLE_FIELDS } from "./constants";
 
 export const VideoDetailsFields = ({
   form,
   categories,
+  isUpdateMode,
 }: {
   form: any;
   categories: Category[];
+  isUpdateMode: boolean;
 }) => {
   const [selectedCriteria, setSelectedCriteria] = useState<string[]>([
     "public",
@@ -53,6 +56,10 @@ export const VideoDetailsFields = ({
       .join(", ");
   };
 
+  const isFieldDisabled = (fieldName: string) => {
+    return isUpdateMode && !UPDATABLE_FIELDS.includes(fieldName);
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -62,7 +69,10 @@ export const VideoDetailsFields = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange}>
+              <Select
+                onValueChange={field.onChange}
+                disabled={isFieldDisabled("categoryIds")}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
@@ -94,6 +104,7 @@ export const VideoDetailsFields = ({
                   value={selectedCriteria}
                   onValueChange={handleUnlockCriteriaChange}
                   multiple={true}
+                  disabled={isFieldDisabled("unlockCriteria")}
                 >
                   <MultiSelectTrigger>
                     <MultiSelectValue>

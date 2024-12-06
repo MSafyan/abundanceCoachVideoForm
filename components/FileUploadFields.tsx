@@ -10,9 +10,13 @@ import { useFileUpload } from "../hooks/usefileUpload";
 
 interface FileUploadFieldsProps {
   form: any;
+  isUpdateMode: boolean;
 }
 
-export const FileUploadFields: React.FC<FileUploadFieldsProps> = ({ form }) => {
+export const FileUploadFields: React.FC<FileUploadFieldsProps> = ({
+  form,
+  isUpdateMode,
+}) => {
   const { isUploading, handleFileChange } = useFileUpload();
 
   const [thumbnail, setThumbnail] = useState<File | null>(null);
@@ -31,7 +35,7 @@ export const FileUploadFields: React.FC<FileUploadFieldsProps> = ({ form }) => {
               handleFileChange(e, setThumbnail, "thumbnail", form)
             }
             accept="image/*"
-            disabled={isUploading}
+            disabled={isUploading || isUpdateMode}
           />
         </FormControl>
         <FormDescription>
@@ -54,7 +58,7 @@ export const FileUploadFields: React.FC<FileUploadFieldsProps> = ({ form }) => {
                 form
               )
             }
-            disabled={isUploading}
+            disabled={isUploading || isUpdateMode}
           />
         </FormControl>
         <FormDescription>

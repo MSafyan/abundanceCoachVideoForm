@@ -20,7 +20,15 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Clock, Star, Calendar, CheckCircle, XCircle } from "lucide-react";
+import {
+  Clock,
+  Star,
+  Calendar,
+  CheckCircle,
+  XCircle,
+  Trash2,
+  Edit,
+} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +41,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
 
 interface VideoResponse {
   id: number;
@@ -317,20 +324,32 @@ export default function AdminPage() {
               </div>
             </CardContent>
             <CardFooter className="bg-muted p-6 flex justify-between items-center">
-              <Select
-                defaultValue={video.isVerified ? "verified" : "unverified"}
-                onValueChange={(value) =>
-                  updateVideoStatus(video.id, value === "verified")
-                }
-              >
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="verified">Verified</SelectItem>
-                  <SelectItem value="unverified">Unverified</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select
+                  defaultValue={video.isVerified ? "verified" : "unverified"}
+                  onValueChange={(value) =>
+                    updateVideoStatus(video.id, value === "verified")
+                  }
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="verified">Verified</SelectItem>
+                    <SelectItem value="unverified">Unverified</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() =>
+                    router.push(`/?videoId=${video.id}&update=true`)
+                  }
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
 
               <AlertDialog>
                 <AlertDialogTrigger asChild>

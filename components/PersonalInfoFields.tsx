@@ -15,6 +15,7 @@ interface PersonalInfoFieldsProps {
   setIsEmailVerified: React.Dispatch<React.SetStateAction<boolean>>;
   setUserId: React.Dispatch<React.SetStateAction<number | null>>;
   userId: number | null;
+  isUpdateMode: boolean;
 }
 
 export const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
@@ -22,6 +23,7 @@ export const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
   setIsEmailVerified,
   setUserId,
   userId,
+  isUpdateMode,
 }) => {
   const [isChecking, setIsChecking] = useState(false);
 
@@ -79,12 +81,12 @@ export const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
                   type="email"
                   placeholder="john.doe@example.com"
                   {...field}
-                  disabled={isChecking || userId !== null}
+                  disabled={isChecking || userId !== null || isUpdateMode}
                 />
                 <Button
                   type="button"
                   onClick={checkEmail}
-                  disabled={isChecking}
+                  disabled={isChecking || isUpdateMode}
                 >
                   {isChecking ? "Checking..." : "Verify Email"}
                 </Button>

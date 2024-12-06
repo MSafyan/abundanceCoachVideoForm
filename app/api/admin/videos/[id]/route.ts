@@ -1,90 +1,41 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { checkAuth } from "@/app/utils/auth";
 import { backendUrl } from "@/config";
-export async function PATCH(
-  request: Request,
+
+export async function GET(
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const accessToken = cookies().get("access_token")?.value;
-  const { isVerified } = await request.json();
+  const authResult = checkAuth();
 
-  if (!accessToken) {
-    return NextResponse.json(
-      { success: false, message: "Unauthorized" },
-      { status: 401 }
-    );
+  if (typeof authResult !== "string") {
+    return authResult;
   }
 
-  try {
-    const response = await fetch(`${backendUrl}/videos/${params.id}/admin`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ isVerified }),
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      return NextResponse.json({ success: true, data: data.data });
-    } else {
-      return NextResponse.json(
-        { success: false, message: data.message },
-        { status: response.status }
-      );
-    }
-  } catch (error) {
-    console.error("Error updating video status:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: "An error occurred while updating the video status",
-      },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  const accessToken = cookies().get("access_token")?.value;
-
-  if (!accessToken) {
-    return NextResponse.json(
-      { success: false, message: "Unauthorized" },
-      { status: 401 }
-    );
-  }
+  const accessToken = authResult;
 
   try {
     const response = await fetch(`${backendUrl}/videos/${params.id}`, {
-      method: "DELETE",
       headers: {
         Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       },
     });
 
     const data = await response.json();
 
-    if (data.success) {
-      return NextResponse.json({ success: true, data: data.data });
+    if (response.ok) {
+      return NextResponse.json(data);
     } else {
       return NextResponse.json(
-        { success: false, message: data.message },
+        { success: false, message: data.message || "Failed to fetch video" },
         { status: response.status }
       );
     }
   } catch (error) {
-    console.error("Error deleting video:", error);
+    console.error("Error fetching video:", error);
     return NextResponse.json(
-      {
-        success: false,
-        message: "An error occurred while deleting the video",
-      },
+      { success: false, message: "An error occurred while fetching the video" },
       { status: 500 }
     );
   }

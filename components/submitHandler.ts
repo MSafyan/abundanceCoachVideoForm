@@ -12,13 +12,14 @@ export const handleSubmit = async (
   try {
     setIsSubmitting(true);
 
-    // convert categoryIds to number from string
-    // @ts-ignore
-    values.categoryIds = [parseInt(values.categoryIds)];
+    // Ensure keywords is an array
+    const keywords = Array.isArray(values.keywords) ? values.keywords : [];
 
     // Prepare the form data
     const formData = {
       ...values,
+      keywords, // This ensures we always send an array
+      categoryIds: [parseInt(values.categoryIds)],
       thumbnail: form.getValues("thumbnail"),
       supplementalMaterialUrl: form.getValues("supplementalMaterialUrl"),
     };

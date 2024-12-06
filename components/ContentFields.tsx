@@ -14,16 +14,22 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import VideoUploadField from "./VideoUploadField";
 import { Button } from "@/components/ui/button";
+import { UPDATABLE_FIELDS } from "./constants";
 
 export const ContentFields = ({
   form,
   handleVimeoAuth,
   isVimeoAuthenticated,
+  isUpdateMode,
 }: {
   form: any;
   handleVimeoAuth: () => void;
   isVimeoAuthenticated: boolean;
+  isUpdateMode: boolean;
 }) => {
+  const isFieldDisabled = (fieldName: string) => {
+    return isUpdateMode && !UPDATABLE_FIELDS.includes(fieldName);
+  };
   const [showVimeoAuthButton, setShowVimeoAuthButton] = useState(false);
 
   useEffect(() => {
@@ -40,7 +46,11 @@ export const ContentFields = ({
           <FormItem>
             <FormLabel>Video Title</FormLabel>
             <FormControl>
-              <Input placeholder="Enter your video title" {...field} />
+              <Input
+                placeholder="Enter your video title"
+                {...field}
+                disabled={isFieldDisabled("title")}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -53,7 +63,11 @@ export const ContentFields = ({
           <FormItem>
             <FormLabel>Video Description</FormLabel>
             <FormControl>
-              <Textarea placeholder="Enter your video description" {...field} />
+              <Textarea
+                placeholder="Enter your video description"
+                {...field}
+                disabled={isFieldDisabled("description")}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -130,6 +144,7 @@ export const ContentFields = ({
                 value={field.value}
                 onChange={field.onChange}
                 placeholder="Type a keyword and press Enter"
+                disabled={isFieldDisabled("keywords")}
               />
             </FormControl>
             <FormDescription>Enter keywords for your video</FormDescription>
@@ -164,6 +179,7 @@ export const ContentFields = ({
             <FormControl>
               <Textarea
                 placeholder="Enter video captions or transcript"
+                disabled={isFieldDisabled("transcript")}
                 {...field}
               />
             </FormControl>

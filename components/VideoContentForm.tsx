@@ -27,6 +27,7 @@ import { useFileUpload } from "@/hooks/usefileUpload";
 import { toast } from "@/hooks/use-toast";
 import { useAppContext } from "@/app/context/AppContext";
 import { useRouter, useSearchParams } from "next/navigation";
+import { formatKeywordsToArray } from "@/utils/formatHelpers";
 
 export default function VideoContentForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,6 +40,7 @@ export default function VideoContentForm() {
   const { isVimeoAuthenticated, setIsVimeoAuthenticated } = useAppContext();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isUpdateMode, setIsUpdateMode] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -105,6 +107,63 @@ export default function VideoContentForm() {
     checkVimeoAuth();
   }, [userId]);
 
+  useEffect(() => {
+    const videoId = searchParams.get("videoId");
+    const isUpdate = searchParams.get("update") === "true";
+
+    if (videoId && isUpdate) {
+      setIsUpdateMode(true);
+
+      // Fetch video details
+      const fetchVideoDetails = async () => {
+        try {
+          const response = await fetch(`/api/admin/videos/${videoId}`);
+          if (!response.ok) throw new Error("Failed to fetch video details");
+
+          const data = await response.json();
+          if (data.success) {
+            // Store videoId for update operation
+            debugger;
+            // Transform the data to match form structure
+            const formData = {
+              email: data.data.user.email,
+              title: data.data.title,
+              description: data.data.description,
+              unlockCriteria: data.data.unlockCriteria,
+              amtPointsRequired: data.data.amtPointsRequired,
+              categoryIds: data.data.categories[0]?.id.toString() || "",
+              tagNames: data.data.tags.map((tag: any) => tag.tag),
+              videoHostedOn: data.data.videoHostedOn || "vimeoWesion",
+              url: data.data.url || "",
+              keywords: formatKeywordsToArray(data.data.videoDetail?.keywords),
+              transcript: data.data.videoDetail?.transcript || "",
+              supplementalMaterialUrl:
+                data.data.videoDetail?.supplementalMaterialUrl || "",
+            };
+
+            // Store form data for initialization
+            localStorage.setItem(
+              "updateFormInitialBody",
+              JSON.stringify(formData)
+            );
+
+            // Reset form with fetched data
+            form.reset(formData);
+          }
+        } catch (error) {
+          console.error("Error fetching video details:", error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch video details",
+            variant: "destructive",
+          });
+        }
+      };
+
+      fetchVideoDetails();
+    }
+  }, [searchParams]);
+
   const getButtonText = () => {
     if (isUploading || isUploadingVimeo) return "Uploading...";
     if (isSubmitting) return "Submitting...";
@@ -130,13 +189,58 @@ export default function VideoContentForm() {
       return;
     }
 
-    await handleSubmit(
-      values,
-      setIsSubmitting,
-      setShowSuccessModal,
-      setShowConfetti,
-      form
-    );
+    if (isUpdateMode) {
+      const videoId = localStorage.getItem("updateVideoId");
+      if (!videoId) {
+        toast({
+          title: "Error",
+          description: "Video ID not found",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        setIsSubmitting(true);
+        const response = await fetch(`/api/admin/videos/${videoId}/update`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          toast({
+            title: "Success",
+            description: "Video updated successfully",
+          });
+          // Clear stored data
+          localStorage.removeItem("updateFormInitialBody");
+          localStorage.removeItem("updateVideoId");
+        } else {
+          throw new Error(data.message);
+        }
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to update video",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      // Existing submit logic for new video
+      await handleSubmit(
+        values,
+        setIsSubmitting,
+        setShowSuccessModal,
+        setShowConfetti,
+        form
+      );
+    }
   };
 
   const handleVimeoAuth = async () => {
@@ -201,16 +305,22 @@ export default function VideoContentForm() {
                 setIsEmailVerified={setIsEmailVerified}
                 setUserId={setUserId}
                 userId={userId}
+                isUpdateMode={isUpdateMode}
               />
-              {(isEmailVerified || isVimeoAuthenticated) && (
+              {(isUpdateMode || isEmailVerified || isVimeoAuthenticated) && (
                 <>
-                  <VideoDetailsFields form={form} categories={categories} />
+                  <VideoDetailsFields
+                    form={form}
+                    categories={categories}
+                    isUpdateMode={isUpdateMode}
+                  />
                   <ContentFields
                     form={form}
                     handleVimeoAuth={handleVimeoAuth}
                     isVimeoAuthenticated={isVimeoAuthenticated}
+                    isUpdateMode={isUpdateMode}
                   />
-                  <FileUploadFields form={form} />
+                  <FileUploadFields form={form} isUpdateMode={isUpdateMode} />
                   <Button
                     type="submit"
                     className="w-full"
