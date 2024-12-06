@@ -28,6 +28,7 @@ import { toast } from "@/hooks/use-toast";
 import { useAppContext } from "@/app/context/AppContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatKeywordsToArray } from "@/utils/formatHelpers";
+import { UPDATABLE_FIELDS } from "./constants";
 
 export default function VideoContentForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,7 +41,8 @@ export default function VideoContentForm() {
   const { isVimeoAuthenticated, setIsVimeoAuthenticated } = useAppContext();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isUpdateMode, setIsUpdateMode] = useState(false);
+  const videoId = searchParams.get("videoId");
+  const isUpdate = searchParams.get("update") === "true";
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -57,7 +59,6 @@ export default function VideoContentForm() {
       transcript: "",
       thumbnail: "",
       supplementalMaterialUrl: "",
-      amtPointsRequired: undefined,
     },
   });
 
@@ -108,12 +109,7 @@ export default function VideoContentForm() {
   }, [userId]);
 
   useEffect(() => {
-    const videoId = searchParams.get("videoId");
-    const isUpdate = searchParams.get("update") === "true";
-
     if (videoId && isUpdate) {
-      setIsUpdateMode(true);
-
       // Fetch video details
       const fetchVideoDetails = async () => {
         try {
@@ -122,8 +118,6 @@ export default function VideoContentForm() {
 
           const data = await response.json();
           if (data.success) {
-            // Store videoId for update operation
-            debugger;
             // Transform the data to match form structure
             const formData = {
               email: data.data.user.email,
@@ -141,11 +135,11 @@ export default function VideoContentForm() {
                 data.data.videoDetail?.supplementalMaterialUrl || "",
             };
 
-            // Store form data for initialization
-            localStorage.setItem(
-              "updateFormInitialBody",
-              JSON.stringify(formData)
-            );
+            // // Store form data for initialization
+            // localStorage.setItem(
+            //   "updateFormInitialBody",
+            //   JSON.stringify(formData)
+            // );
 
             // Reset form with fetched data
             form.reset(formData);
@@ -171,7 +165,12 @@ export default function VideoContentForm() {
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!isVimeoAuthenticated && values.videoHostedOn === "vimeoPersonal") {
+    debugger;
+    if (
+      !isVimeoAuthenticated &&
+      values.videoHostedOn === "vimeoPersonal" &&
+      !isUpdate
+    ) {
       toast({
         title: "Error",
         description: "Please authenticate with Vimeo first.",
@@ -188,18 +187,11 @@ export default function VideoContentForm() {
       });
       return;
     }
+    const updatableValues = Object.fromEntries(
+      Object.entries(values).filter(([key]) => UPDATABLE_FIELDS.includes(key))
+    );
 
-    if (isUpdateMode) {
-      const videoId = localStorage.getItem("updateVideoId");
-      if (!videoId) {
-        toast({
-          title: "Error",
-          description: "Video ID not found",
-          variant: "destructive",
-        });
-        return;
-      }
-
+    if (isUpdate) {
       try {
         setIsSubmitting(true);
         const response = await fetch(`/api/admin/videos/${videoId}/update`, {
@@ -207,7 +199,10 @@ export default function VideoContentForm() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(values),
+          body: JSON.stringify({
+            ...updatableValues,
+            categoryIds: [parseInt(values.categoryIds)],
+          }),
         });
 
         const data = await response.json();
@@ -216,9 +211,9 @@ export default function VideoContentForm() {
             title: "Success",
             description: "Video updated successfully",
           });
+          router.push(`/admin`);
           // Clear stored data
-          localStorage.removeItem("updateFormInitialBody");
-          localStorage.removeItem("updateVideoId");
+          // localStorage.removeItem("updateFormInitialBody");
         } else {
           throw new Error(data.message);
         }
@@ -305,22 +300,22 @@ export default function VideoContentForm() {
                 setIsEmailVerified={setIsEmailVerified}
                 setUserId={setUserId}
                 userId={userId}
-                isUpdateMode={isUpdateMode}
+                isUpdateMode={isUpdate}
               />
-              {(isUpdateMode || isEmailVerified || isVimeoAuthenticated) && (
+              {(isUpdate || isEmailVerified || isVimeoAuthenticated) && (
                 <>
                   <VideoDetailsFields
                     form={form}
                     categories={categories}
-                    isUpdateMode={isUpdateMode}
+                    isUpdateMode={isUpdate}
                   />
                   <ContentFields
                     form={form}
                     handleVimeoAuth={handleVimeoAuth}
                     isVimeoAuthenticated={isVimeoAuthenticated}
-                    isUpdateMode={isUpdateMode}
+                    isUpdateMode={isUpdate}
                   />
-                  <FileUploadFields form={form} isUpdateMode={isUpdateMode} />
+                  <FileUploadFields form={form} isUpdateMode={isUpdate} />
                   <Button
                     type="submit"
                     className="w-full"

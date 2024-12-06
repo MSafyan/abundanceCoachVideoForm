@@ -1,16 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { backendUrl } from "@/config";
+import { cookies } from "next/headers";
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const accessToken = cookies().get("access_token")?.value;
+
+  if (!accessToken) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
   try {
     const formData = await request.json();
     const response = await fetch(`${backendUrl}/videos/${params.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify(formData),
     });

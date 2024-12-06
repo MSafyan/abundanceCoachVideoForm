@@ -32,7 +32,6 @@ const formSchema = z.object({
   unlockCriteria: z
     .array(z.enum(["public", "accountabilityPartner", "amtPoints"]))
     .min(1, { message: "At least one unlock criteria must be selected" }),
-  amtPointsRequired: z.number().optional(),
 });
 
 export { formSchema };
