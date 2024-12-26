@@ -228,6 +228,7 @@ export default function VideoContentForm() {
       }
     } else {
       // Existing submit logic for new video
+      debugger;
       await handleSubmit(
         values,
         setIsSubmitting,

@@ -6,7 +6,7 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useFileUpload } from "../hooks/usefileUpload";
+import { useFileUpload } from "@/hooks/usefileUpload";
 
 interface FileUploadFieldsProps {
   form: any;

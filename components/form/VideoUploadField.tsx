@@ -7,8 +7,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { useFileUpload } from "../hooks/usefileUpload";
-
+import { useFileUpload } from "@/hooks/usefileUpload";
 const VideoUploadField = ({ form }: { form: any }) => {
   const { isUploadingVimeo, uploadProgress, handleFileChange } =
     useFileUpload();

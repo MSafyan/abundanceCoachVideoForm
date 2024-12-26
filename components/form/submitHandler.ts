@@ -14,7 +14,7 @@ export const handleSubmit = async (
 
     // Ensure keywords is an array
     const keywords = Array.isArray(values.keywords) ? values.keywords : [];
-
+    debugger;
     // Prepare the form data
     const formData = {
       ...values,
@@ -22,6 +22,7 @@ export const handleSubmit = async (
       categoryIds: [parseInt(values.categoryIds)],
       thumbnail: form.getValues("thumbnail"),
       supplementalMaterialUrl: form.getValues("supplementalMaterialUrl"),
+      amtPointsRequired: form.getValues("amtPointsRequired"),
     };
 
     console.log("formData", formData);

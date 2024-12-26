@@ -1,4 +1,4 @@
-import VideoContentForm from "@/components/VideoContentForm";
+import VideoContentForm from "@/components/form/VideoContentForm";
 
 export default function Home() {
   return (
