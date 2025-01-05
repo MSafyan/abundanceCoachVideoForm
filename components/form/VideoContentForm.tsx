@@ -194,7 +194,7 @@ export default function VideoContentForm() {
     if (isUpdate) {
       try {
         setIsSubmitting(true);
-        const response = await fetch(`/api/admin/videos/${videoId}/update`, {
+        const response = await fetch(`/api/admin/videos/${videoId}/put`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

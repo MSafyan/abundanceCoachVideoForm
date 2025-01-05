@@ -18,6 +18,7 @@ const formSchema = z.object({
     message: "Video description must be at least 10 characters.",
   }),
   videoHostedOn: z.enum(["vimeoWesion", "vimeoPersonal", "youtube", "others"]),
+  // .optional()
   url: z
     .string()
     .url({

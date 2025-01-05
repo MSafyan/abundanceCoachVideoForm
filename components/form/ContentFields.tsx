@@ -76,7 +76,7 @@ export const ContentFields = ({
       <FormField
         control={form.control}
         name="videoHostedOn"
-        disabled={isFieldDisabled("videoHostedOn")}
+        // disabled={isFieldDisabled("videoHostedOn")}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Video Hosted On</FormLabel>

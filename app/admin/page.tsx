@@ -133,7 +133,7 @@ export default function AdminPage() {
 
   const updateVideoStatus = async (videoId: number, isVerified: boolean) => {
     try {
-      const res = await fetch(`/api/admin/videos/${videoId}/update`, {
+      const res = await fetch(`/api/admin/videos/${videoId}/patchAdmin`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
